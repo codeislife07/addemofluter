@@ -55,6 +55,7 @@ class _MyHomePageState extends State<MyHomePage> {
     onAdImpression: (Ad ad) => print('Ad impression.'),
   );
 
+  InterstitialAd? interstitialAd;
 @override
   void initState() {
     // TODO: implement initState
@@ -67,7 +68,22 @@ class _MyHomePageState extends State<MyHomePage> {
         listener: listener,
       );
       myBanner!.load();
+      interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+        onAdShowedFullScreenContent: (InterstitialAd ad) =>
+            print('%ad onAdShowedFullScreenContent.'),
+        onAdDismissedFullScreenContent: (InterstitialAd ad) {
+          print('$ad onAdDismissedFullScreenContent.');
+          ad.dispose();
+        },
+        onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+          print('$ad onAdFailedToShowFullScreenContent: $error');
+          ad.dispose();
+        },
+        onAdImpression: (InterstitialAd ad) => print('$ad impression occurred.'),
+      );
+
     });
+    
   }
 
 
@@ -89,8 +105,28 @@ class _MyHomePageState extends State<MyHomePage> {
               child:  AdWidget(ad: myBanner!),
               width: double.infinity,
               height: 100,
-            )
+            ),
+            SizedBox(height:100),
+            ElevatedButton(onPressed: (){
+              setState(() {
+                InterstitialAd.load(
+                    adUnitId:Platform.isAndroid==true?'ca-app-pub-3940256099942544/1033173712':"ca-app-pub-3940256099942544/4411468910",
+                    request: AdRequest(),
+                    adLoadCallback: InterstitialAdLoadCallback(
+                      onAdLoaded: (InterstitialAd ad) {
+                        // Keep a reference to the ad so you can show it later.
+                        this.interstitialAd = ad;
+                        interstitialAd!.show();
+                      },
+                      onAdFailedToLoad: (LoadAdError error) {
+                        print('InterstitialAd failed to load: $error');
+                      },
+                    ));
 
+
+
+              });
+            }, child: Text("Show InterstitialAd "))
           ],
         ),
       ),
