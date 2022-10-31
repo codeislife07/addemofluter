@@ -56,6 +56,7 @@ class _MyHomePageState extends State<MyHomePage> {
   );
 
   InterstitialAd? interstitialAd;
+  RewardedAd? _rewardedAd;
 @override
   void initState() {
     // TODO: implement initState
@@ -68,24 +69,9 @@ class _MyHomePageState extends State<MyHomePage> {
         listener: listener,
       );
       myBanner!.load();
-      interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
-        onAdShowedFullScreenContent: (InterstitialAd ad) =>
-            print('%ad onAdShowedFullScreenContent.'),
-        onAdDismissedFullScreenContent: (InterstitialAd ad) {
-          print('$ad onAdDismissedFullScreenContent.');
-          ad.dispose();
-        },
-        onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-          print('$ad onAdFailedToShowFullScreenContent: $error');
-          ad.dispose();
-        },
-        onAdImpression: (InterstitialAd ad) => print('$ad impression occurred.'),
-      );
 
     });
-    
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -100,12 +86,12 @@ class _MyHomePageState extends State<MyHomePage> {
             const Text(
               'This is banner ad',
             ),
-            Container(
+            myBanner!=null?Container(
               alignment: Alignment.center,
               child:  AdWidget(ad: myBanner!),
               width: double.infinity,
               height: 100,
-            ),
+            ):Container(),
             SizedBox(height:100),
             ElevatedButton(onPressed: (){
               setState(() {
@@ -116,6 +102,19 @@ class _MyHomePageState extends State<MyHomePage> {
                       onAdLoaded: (InterstitialAd ad) {
                         // Keep a reference to the ad so you can show it later.
                         this.interstitialAd = ad;
+                        interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+                          onAdShowedFullScreenContent: (InterstitialAd ad) =>
+                              print('%ad onAdShowedFullScreenContent.'),
+                          onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                            print('$ad onAdDismissedFullScreenContent.');
+                            ad.dispose();
+                          },
+                          onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                            print('$ad onAdFailedToShowFullScreenContent: $error');
+                            ad.dispose();
+                          },
+                          onAdImpression: (InterstitialAd ad) => print('$ad impression occurred.'),
+                        );
                         interstitialAd!.show();
                       },
                       onAdFailedToLoad: (LoadAdError error) {
@@ -123,10 +122,32 @@ class _MyHomePageState extends State<MyHomePage> {
                       },
                     ));
 
-
-
               });
-            }, child: Text("Show InterstitialAd "))
+            }, child: Text("Show InterstitialAd ")),
+            ElevatedButton(onPressed: (){
+
+              RewardedAd.load(
+                  adUnitId: Platform.isAndroid==true?"ca-app-pub-3940256099942544/5224354917":"ca-app-pub-3940256099942544/1712485313",
+                  rewardedAdLoadCallback: RewardedAdLoadCallback(
+                    onAdLoaded: (RewardedAd ad) {
+                      print('$ad loaded.');
+                      // Keep a reference to the ad so you can show it later.
+                      setState(() {
+                        this._rewardedAd = ad;
+                        _rewardedAd!.show(onUserEarnedReward: (AdWithoutView ad, RewardItem rewardItem) {
+                          // Reward the user for watching an ad.
+                        });
+                      });
+                    },
+                    onAdFailedToLoad: (LoadAdError error) {
+                      print('RewardedAd failed to load: $error');
+                    },
+                  ), request:  AdRequest());
+
+
+
+
+            }, child: Text("Rewarded Ad"))
           ],
         ),
       ),
